@@ -1,3 +1,8 @@
+version: '3'
+
+networks:
+  symfony-network:
+
 services:
   db_second:
     container_name: db_second
@@ -8,24 +13,32 @@ services:
       PGDATA: /var/lib/postgresql/data
     ports:
       - '7432:5432'
+    networks:
+      - symfony-network
   php_second:
     container_name: php_second
     build:
       context: ./docker/php
+    expose:
+      - "9001"
     ports:
       - '9001:9001'
     volumes:
-      - ./:/var/www/second-project
+      - ./:/app
     depends_on:
       - db_second
+    networks:
+      - symfony-network
   nginx_second:
     container_name: nginx_second
     image: nginx:stable-alpine
     ports:
       - '8888:80'
     volumes:
-      - ./:/var/www/second-project
+      - ./:/app
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - php_second
       - db_second
+    networks:
+      - symfony-network
